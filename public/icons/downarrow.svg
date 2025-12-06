@@ -1,0 +1,17 @@
+<svg width="41" height="41" viewBox="0 0 41 41" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="0.0999756" y="0.100006" width="40" height="40" rx="4" fill="white" fill-opacity="0.04"/>
+<rect x="0.0999756" y="0.100006" width="40" height="40" rx="4" stroke="url(#paint0_radial_921_88)" stroke-width="0.2"/>
+<mask id="mask0_921_88" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="41" height="41">
+<rect x="0.0999756" y="0.100006" width="40" height="40" fill="#ADB7D2"/>
+</mask>
+<g mask="url(#mask0_921_88)">
+<path d="M20.255 31.8339L10.5043 22.0832L12.3216 20.2658L18.9615 26.9057V10.4418H21.5485V26.9057L28.1884 20.2658L30.0057 22.0832L20.255 31.8339Z" fill="#ADB7D2"/>
+</g>
+<defs>
+<radialGradient id="paint0_radial_921_88" cx="0" cy="0" r="1" gradientTransform="matrix(39.0804 0.00101755 -39.7158 73.6992 0.541858 0.57874)" gradientUnits="userSpaceOnUse">
+<stop offset="0.0475679" stop-color="#060A10" stop-opacity="0"/>
+<stop offset="0.484345" stop-color="#ADB7D2"/>
+<stop offset="0.963029" stop-color="#060A10" stop-opacity="0"/>
+</radialGradient>
+</defs>
+</svg>
