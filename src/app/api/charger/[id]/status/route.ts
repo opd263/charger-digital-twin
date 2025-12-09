@@ -1,10 +1,12 @@
-// pages/api/charger/[id]/status.ts
-import type { NextApiRequest, NextApiResponse } from 'next'
+import { NextResponse } from "next/server";
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = req.query
-  // static mock response (can be enhanced)
-  res.status(200).json({
+export async function GET(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
+  return NextResponse.json({
     id,
     status: "online",
     temperature: 36,
@@ -16,7 +18,10 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     connectivity: { wifi: true, lan: false, sim: true },
     doors: { front: "Closed", left: "Closed", right: "Open" },
     mcb: { l1: 1000, l2: 1000, l3: 1000, a: 60 },
-    gun: { gun1: { status: "ARMED", temp: 29 }, gun2: { status: "Charging", temp: 39 } },
+    gun: { 
+      gun1: { status: "ARMED", temp: 29 }, 
+      gun2: { status: "Charging", temp: 39 } 
+    },
     humidity: { external: 30, charger: 34 },
-  })
+  });
 }

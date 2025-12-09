@@ -1,79 +1,72 @@
 // src/app/api/charger/[id]/notifications/route.ts
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
 
-const notifications = [
-  {
-    id: "000004",
-    type: "warning",
-    message: "OverCurrentFailure",
-    time: "13/06/2025 | 09:04:34",
-  },
-  {
-    id: "000013",
-    type: "critical",
-    message: "The EVSE has no internet connectivity",
-    time: "13/06/2025 | 08:09:13",
-  },
-  {
-    id: "000014",
-    type: "warning",
-    message: "PowerLoss",
-    time: "13/06/2025 | 08:04:11",
-  },
-  {
-    id: "001004",
-    type: "warning",
-    message: "REMOTE_STOP",
-    time: "13/06/2025 | 07:32:46",
-  },
-   {
-    id: "001003",
-    type: "warning",
-    message: "NFC_STOP",
-    time: "12/06/2025 | 22:01:42",
-  },
-  {
-    id: "002000",
-    type: "warning",
-    message: "UNREGISTERED_THE_CARD",
-    time: "12/06/2025 | 20:48:14",
-  },
-  {
-    id: "001000",
-    type: "warning",
-    message: "UNKNOWN_STOP",
-    time: "12/06/2025 | 20:12:52",
-  },
-  {
-    id: "001404",
-    type: "warning",
-    message: "REMOTE_STOP",
-    time: "12/06/2025 | 19:39:38",
-  },
-  {
-    id: "000021",
-    type: "critical",
-    message: "Over Temperature on Charger",
-    time: "11/06/2025 | 18:11:02",
-  },
-  {
-    id: "000022",
-    type: "warning",
-    message: "High Grid Voltage",
-    time: "11/06/2025 | 16:45:27",
-  },
-  {
-    id: "000015",
-    type: "warning",
-    message: "Power Loss",
-    time: "12/06/2025 | 22:04:34",
-  },
-]
+type Notification = {
+  id: string;
+  type: "warning" | "critical" | string;
+  message: string;
+  time: string; // ISO string
+};
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
-  // you can use params.id later if you want per-charger notifications
-  return NextResponse.json(notifications)
+// sample data (use DB in prod)
+const notifications: Notification[] = [
+  { id: "000004", type: "warning", message: "OverCurrentFailure", time: "2025-06-13T09:04:34Z" },
+  { id: "000013", type: "critical", message: "The EVSE has no internet connectivity", time: "2025-06-13T08:09:13Z" },
+  { id: "000014", type: "warning", message: "PowerLoss", time: "2025-06-13T08:04:11Z" },
+  { id: "001004", type: "warning", message: "REMOTE_STOP", time: "2025-06-13T07:32:46Z" },
+  { id: "001003", type: "warning", message: "NFC_STOP", time: "2025-06-12T22:01:42Z" },
+  { id: "002000", type: "warning", message: "UNREGISTERED_THE_CARD", time: "2025-06-12T20:48:14Z" },
+  { id: "001000", type: "warning", message: "UNKNOWN_STOP", time: "2025-06-12T20:12:52Z" },
+  { id: "001404", type: "warning", message: "REMOTE_STOP", time: "2025-06-12T19:39:38Z" },
+  { id: "000021", type: "critical", message: "Over Temperature on Charger", time: "2025-06-11T18:11:02Z" },
+  { id: "000022", type: "warning", message: "High Grid Voltage", time: "2025-06-11T16:45:27Z" },
+  { id: "000015", type: "warning", message: "Power Loss", time: "2025-06-12T22:04:34Z" }
+];
+
+// helper: parse ?limit and ?cursor
+function parseQueryParams(url: URL) {
+  const limit = Math.min(Math.max(Number(url.searchParams.get("limit") || "20"), 1), 100);
+  const cursor = url.searchParams.get("cursor") || null; // cursor = last item's id
+  return { limit, cursor };
+}
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  const { id } = params;
+
+  // basic validation
+  if (!id || id.trim().length === 0) {
+    return NextResponse.json({ error: "Invalid charger id" }, { status: 400 });
+  }
+
+  const url = new URL(req.url);
+  const { limit, cursor } = parseQueryParams(url);
+
+  // in prod: query DB by charger id, order by time desc, apply limit & cursor
+  // here: filter sample data (if you want per-charger separation)
+  // For demo we return the whole list (sorted by time desc)
+  const sorted = [...notifications].sort((a, b) => (a.time < b.time ? 1 : -1));
+
+  // if cursor provided, find index and slice after it
+  let startIndex = 0;
+  if (cursor) {
+    const idx = sorted.findIndex((n) => n.id === cursor);
+    startIndex = idx >= 0 ? idx + 1 : 0;
+  }
+
+  const page = sorted.slice(startIndex, startIndex + limit);
+  const nextCursor = page.length === limit ? page[page.length - 1].id : null;
+
+  const resBody = {
+    chargerId: id,
+    items: page,
+    nextCursor,
+    limit
+  };
+
+  // Cache-Control: short caching for 5s; change as needed
+  const headers = {
+    "Cache-Control": "public, max-age=5, s-maxage=5, stale-while-revalidate=10"
+  };
+
+  return NextResponse.json(resBody, { status: 200, headers });
 }

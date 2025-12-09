@@ -1,10 +1,19 @@
-// pages/api/charger/[id]/diagnose.ts
-import type { NextApiRequest, NextApiResponse } from 'next'
+// src/app/api/charger/[id]/diagnose/route.ts
+import { NextResponse } from 'next/server';
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method === 'POST') {
-    const startedAt = new Date().toISOString()
-    return res.status(200).json({ diagnosticsStarted: true, timestamp: startedAt })
-  }
-  res.status(405).json({ message: 'Method Not Allowed' })
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+  const startedAt = new Date().toISOString();
+
+  return NextResponse.json({
+    diagnosticsStarted: true,
+    chargerId: params.id,
+    timestamp: startedAt
+  });
+}
+
+export function GET() {
+  return NextResponse.json(
+    { message: "Method Not Allowed" },
+    { status: 405 }
+  );
 }
