@@ -2,18 +2,17 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * POST handler for starting diagnostics on a charger.
- * NOTE: In newer Next.js versions context.params might be a Promise,
- * so we await it to be safe for both sync and async typings.
+ * Exact signature expected by Next.js 16+:
+ * POST(request: NextRequest, context: { params: Promise<{ id: string }> })
  */
 export async function POST(
-  req: NextRequest,
-  context: { params: any | Promise<any> } // keep flexible for compiler
-) {
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+): Promise<Response> {
   try {
-    // context.params may be a Promise in Next.js 16+, so await it
+    // context.params is a Promise in Next 16+, so await it
     const params = await context.params;
-    const id: string | undefined = params?.id;
+    const id = params?.id;
 
     if (!id) {
       return NextResponse.json({ error: "missing charger id" }, { status: 400 });
@@ -21,18 +20,20 @@ export async function POST(
 
     const startedAt = new Date().toISOString();
 
-    return NextResponse.json({
-      diagnosticsStarted: true,
-      chargerId: id,
-      timestamp: startedAt,
-    });
+    return NextResponse.json(
+      {
+        diagnosticsStarted: true,
+        chargerId: id,
+        timestamp: startedAt,
+      },
+      { status: 200 }
+    );
   } catch (err) {
-    // return a 500 with a small error message
     return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
 }
 
-// Optional: respond with 405 for GET or other methods (keeps behavior explicit)
+// Optional explicit 405 for other methods
 export async function GET() {
   return NextResponse.json({ message: "Method Not Allowed" }, { status: 405 });
 }
