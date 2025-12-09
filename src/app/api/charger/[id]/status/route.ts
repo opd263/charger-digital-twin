@@ -1,10 +1,17 @@
-import { NextResponse } from "next/server";
+// src/app/api/charger/[id]/status/route.ts
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  // await params to satisfy Next 16 typing and for runtime safety
+  const params = await context.params;
+  const id = params?.id;
+
+  if (!id) {
+    return NextResponse.json({ error: "missing id" }, { status: 400 });
+  }
 
   return NextResponse.json({
     id,
@@ -18,9 +25,9 @@ export async function GET(
     connectivity: { wifi: true, lan: false, sim: true },
     doors: { front: "Closed", left: "Closed", right: "Open" },
     mcb: { l1: 1000, l2: 1000, l3: 1000, a: 60 },
-    gun: { 
-      gun1: { status: "ARMED", temp: 29 }, 
-      gun2: { status: "Charging", temp: 39 } 
+    gun: {
+      gun1: { status: "ARMED", temp: 29 },
+      gun2: { status: "Charging", temp: 39 },
     },
     humidity: { external: 30, charger: 34 },
   });

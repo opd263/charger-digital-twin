@@ -1,5 +1,5 @@
 // src/app/api/charger/[id]/notifications/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 type Notification = {
   id: string;
@@ -30,20 +30,26 @@ function parseQueryParams(url: URL) {
   return { limit, cursor };
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
+/**
+ * Use NextRequest and await context.params (Next 16+ expects params as a Promise)
+ */
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  // await params to satisfy Next 16 typing (and for runtime safety)
+  const params = await context.params;
+  const { id } = params ?? {};
 
   // basic validation
-  if (!id || id.trim().length === 0) {
+  if (!id || String(id).trim().length === 0) {
     return NextResponse.json({ error: "Invalid charger id" }, { status: 400 });
   }
 
   const url = new URL(req.url);
   const { limit, cursor } = parseQueryParams(url);
 
-  // in prod: query DB by charger id, order by time desc, apply limit & cursor
-  // here: filter sample data (if you want per-charger separation)
-  // For demo we return the whole list (sorted by time desc)
+  // sorted by time desc
   const sorted = [...notifications].sort((a, b) => (a.time < b.time ? 1 : -1));
 
   // if cursor provided, find index and slice after it
@@ -63,7 +69,7 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     limit
   };
 
-  // Cache-Control: short caching for 5s; change as needed
+  // short caching for clients / CDN
   const headers = {
     "Cache-Control": "public, max-age=5, s-maxage=5, stale-while-revalidate=10"
   };
